@@ -27,7 +27,7 @@ import ctypes
 from docopt import docopt
 
 __author__ = "wangyx"
-__version__ = "0.7.0"
+__version__ = "0.7.5"
 
 DATAFILE_HEADER = "EM_DataFile"
 DATAFILE2_HEADER = "EM_DataFile2"
@@ -357,6 +357,11 @@ class DataFileHead():
 class DataFile():
     def __init__(self, filename, datacls):
         self.filename = filename
+        try:
+            self.f = open(self.filename, 'rb')
+        except Exception as e:
+            print(e)
+            exit(1)
         self.head = DataFileHead()
         self.goodsidx = {}
         self.datasize = datacls.getsize()
@@ -364,19 +369,23 @@ class DataFile():
         self.tmsreader = TMSReader(datacls)
         self._readhead()
 
+    def __def__(self):
+        self.f.close()
+
     def _getraw(self, goodsid):
         index = self.goodsidx[goodsid]
         datanum = self.head.goodslist[index].datanum
         blockid = self.head.goodslist[index].blockfirst
         readtime = (datanum - 1) // self.blockdatanum + 1
         data = b''
-        with open(self.filename, mode='rb') as f:
+        #with open(self.filename, mode='rb') as f:
+        try:
             for i in range(readtime):
                 offset = blockid * DF_BLOCK_SIZE
                 if offset > self.length():
                     break
-                f.seek(offset, 0)
-                nextblockid, = struct.unpack('I', f.read(4))
+                self.f.seek(offset, 0)
+                nextblockid, = struct.unpack('I', self.f.read(4))
                 if nextblockid > self.head.goodslist[index].blocklast:
                     break
                 if i == readtime - 1:
@@ -384,34 +393,12 @@ class DataFile():
                               self.blockdatanum) * self.datasize
                 else:
                     length = self.blockdatanum * self.datasize
-                data += f.read(length)
+                data += self.f.read(length)
                 blockid = nextblockid
+        except Exception as e:
+            print(e)
+            exit(1)
         return data
-
-    def _getrawall(self):
-        datamap = {}
-        with open(self.filename, mode='rb') as f:
-            for goodsid, index in self.goodsidx.items():
-                datanum = self.head.goodslist[index].datanum
-                blockid = self.head.goodslist[index].blockfirst
-                readtime = (datanum - 1) // self.blockdatanum + 1
-                data = b''
-                for i in range(readtime):
-                    offset = blockid * DF_BLOCK_SIZE
-                    if offset > self.length():
-                        break
-                    f.seek(offset, 0)
-                    nextblockid, = struct.unpack('I', f.read(4))
-                    if nextblockid > self.head.goodslist[index].blocklast:
-                        break
-                    if i == readtime - 1:
-                        length = (datanum % self.blockdatanum) * self.datasize
-                    else:
-                        length = self.blockdatanum * self.datasize
-                    data += f.read(length)
-                    blockid = nextblockid
-                    datamap[goodsid] = data
-        return datamap
 
     def getgoodstms(self, goodsid):
         return self.tmsreader.read(self._getraw(goodsid))
@@ -422,10 +409,14 @@ class DataFile():
             unit.printbrief()
 
     def _readhead(self):
-        with open(self.filename, 'rb') as f:
-            data = f.read(SIZEOF_DATA_FILE_HEAD)
-            self.head.read(data)
+        try:
+            self.f.seek(0)
+            data = self.f.read(SIZEOF_DATA_FILE_HEAD)
+        except Exception as e:
+            print(e)
+            exit(1)
 
+        self.head.read(data)
         for i in range(self.head.info.goodsnum):
             self.goodsidx[self.head.goodslist[i].goodsid] = i
 
