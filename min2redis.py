@@ -6,7 +6,7 @@ min2redis
 
 Usage:
   min2redis -h | --help | --version
-  min2redis <host> [-p <port>] [-d <date>] -f <file>
+  min2redis <host> [-p <port>] -d <date> [-b <db>] -f <file>
 
 Arguments:
   <host>            redis host
@@ -16,6 +16,7 @@ Options:
   -v --version      show version
   -p <port>         redis port
   -d <date>         date of today, write to db1
+  -b <db>           n of redis db
   -f <file>         min1.dat file
 """
 
@@ -37,6 +38,8 @@ if __name__ == '__main__':
     redishost = arguments["<host>"]
     redisport = int(arguments["-p"]) if arguments["-p"] != None else 6379
     today = arguments["-d"]
+    redisdb = arguments["-b"]
+    nredisdb = 1 if (not redisdb) else int(redisdb)
 
     print("file: {}".format(datafile))
     print("host: {}".format(redishost))
@@ -44,42 +47,26 @@ if __name__ == '__main__':
 
     df = DataFile(datafile, Day)
     if today :
-        r = redis.Redis(host=redishost, port=redisport, db=1)
+        r = redis.Redis(host=redishost, port=redisport, db=nredisdb)
+        p = r.pipeline(transaction=False)
         for goodsid in df.goodsidx:
             k = 'min1:{:0>7}'.format(goodsid)
-            print(k)
             ts = df.getgoodstms(goodsid)
             for i in ts:
-                time = '20{}'.format(i.time)
-                if today == time[0:8]:
+                time = i.time + 200000000000
+                ntoday = int(today)
+                if ntoday == time // 10000:
                     data = {
                                 'time':time,
-                                'open':'{}'.format(i.open),
-                                'high':'{}'.format(i.high),
-                                'low':'{}'.format(i.low),
-                                'close':'{}'.format(i.close),
-                                'volume':'{}'.format(i.volume),
-                                'amount':'{}'.format(i.amount)
+                                'open':i.open/1000.0,
+                                'high':i.high/1000.0,
+                                'low':i.low/1000.0,
+                                'close':i.close/1000.0,
+                                'volume':i.volume,
+                                'amount':i.amount
                             }
                     v = json.dumps(data)
-                    r.rpush(k, v)
-        exit(0)
+                    print("{}:{}".format(k, v))
+                    p.rpush(k, v)
+            p.execute()
 
-    r = redis.Redis(host=redishost, port=redisport)
-    p = r.pipeline(transaction=False)
-    for goodsid in df.goodsidx:
-        mk = 'min1:{:0>7}'.format(goodsid)
-        print(mk)
-        ts = df.getgoodstms(goodsid)
-        for i in ts:
-            data = {'open':'{}'.format(i.open),
-                    'high':'{}'.format(i.high),
-                    'low':'{}'.format(i.low),
-                    'close':'{}'.format(i.close),
-                    'volume':'{}'.format(i.volume),
-                    'amount':'{}'.format(i.amount)}
-            v = json.dumps(data)
-            sk = '20{}'.format(i.time)
-            #print('{}:{}'.format(sk, v))
-            p.hsetnx(mk, sk, v)
-        p.execute()
