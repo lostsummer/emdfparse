@@ -32,6 +32,18 @@ import json
 __author__ = "wangyx"
 __version__ = "0.5.1"
 
+def getjv(min):
+    data = {
+        'time':min.time + 200000000000,
+        'open':min.open/1000.0,
+        'high':min.high/1000.0,
+        'low':min.low/1000.0,
+        'close':min.close/1000.0,
+        'volume':min.volume,
+        'amount':min.amount
+    }
+    return json.dumps(data)
+
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='min2redis {}'.format(__version__))
     datafile = arguments["-f"]
@@ -39,11 +51,9 @@ if __name__ == '__main__':
     redisport = int(arguments["-p"]) if arguments["-p"] != None else 6379
     today = arguments["-d"]
     redisdb = arguments["-b"]
+    ntoday = int(today)
     nredisdb = 1 if (not redisdb) else int(redisdb)
 
-    print("file: {}".format(datafile))
-    print("host: {}".format(redishost))
-    print("port: {}".format(redisport))
 
     df = DataFile(datafile, Day)
     if today :
@@ -54,19 +64,11 @@ if __name__ == '__main__':
             ts = df.getgoodstms(goodsid)
             for i in ts:
                 time = i.time + 200000000000
-                ntoday = int(today)
                 if ntoday == time // 10000:
-                    data = {
-                                'time':time,
-                                'open':i.open/1000.0,
-                                'high':i.high/1000.0,
-                                'low':i.low/1000.0,
-                                'close':i.close/1000.0,
-                                'volume':i.volume,
-                                'amount':i.amount
-                            }
-                    v = json.dumps(data)
-                    print("{}:{}".format(k, v))
+                    v = getjv(i)
                     p.rpush(k, v)
+                    print("{}:{}".format(k, v))
+
             p.execute()
+            print('finish key: {}'.format(k))
 

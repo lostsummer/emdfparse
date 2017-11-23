@@ -260,7 +260,7 @@ class Bargain(DataBase):
     brieflist = ['date', 'time', 'price', 'volume', 'tradenum', 'bs']
 
     def __init__(self):
-        self.data = 0
+        self.date = 0
         self.time = 0
         self.price = 0
         self.volume = 0
@@ -275,6 +275,25 @@ class Bargain(DataBase):
             self.tradenum,
             self.bs) = struct.unpack(self.fmt, data)
 
+class HisMin(DataBase):
+    fmt = '=5I'
+    brieflist = ['time', 'price', 'ave', 'volume', 'zjjl']
+
+    def __init__(self):
+        self.time = 0
+        self.price = 0
+        self.ave = 0
+        self.volume = 0
+        self.zjjl = 0
+
+    def read(self, data):
+        (self.time,
+            self.price,
+            self.ave,
+            self.volume,
+            self.zjjl) = struct.unpack(self.fmt, data)
+        self.volume = xint32value(self.volume)
+        self.zjjl = xint32value(self.zjjl)
 
 class TMSReader():
     def __init__(self, datacls):
@@ -445,6 +464,7 @@ if __name__ == '__main__':
     clstype = {
         "d": Day,
         "m": Minute,
+        "h": HisMin,
         "b": Bargain,
     }
 
