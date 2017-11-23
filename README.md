@@ -38,6 +38,7 @@ Options:
 示例:
 
 1. 列出Day.dat 中所有股票
+
 ```
 python dfparse.py -t d -l Day.dat
 
@@ -63,11 +64,12 @@ python dfparse.py -t d -l Day.dat
 1835503
 ...
 
-```
 后接 "|less" 可浏览, 接 "|wc -l" 可统计股票数量, 不赘述
+```
 
 
 2. 列出HisMin.dat_1中goodsId为1的股票数据(最后先用1命令查看文件中是否有该goodsId, -i 指定文件中不存在的goodsId会抛KeyError异常)
+
 ```
 python dfparse.py -t h -i 1 HisMin.dat_1|less
 
@@ -82,6 +84,7 @@ time:1711130937  price:3446067     ave :3437862     volume:1827598     zjjl:4878
 ```
 
 3. 列出Bargain.dat_1中所有股票数据(数据较多)
+
 ```
 python dfparse.py -t b -a Bargain.dat_1
 
