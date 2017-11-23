@@ -4,7 +4,7 @@
 
 解析DS几种落地文件(基于移动加强版Linux MDS, 猜测和金融平台使用的文件格式相同)
 
-- K线类型: Day.dat, Day_*.dat, Min1.dat, Min1_*.dat, Min5.dat, Min5_*.dat, Min30.dat, Min30_*.dat 等 
+- K线类型: Day.dat, Day_\*.dat, Min1.dat, Min1_\*.dat, Min5.dat, Min5_\*.dat, Min30.dat, Min30_\*.dat 等
 - 分时数据: Minute.dat_n 等
 - 成交数据: Bargain.dat_n 等
 - HisMin (我不知道怎么文字描述这个类型): HisMin.dat_n
