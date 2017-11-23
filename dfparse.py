@@ -334,7 +334,6 @@ class DataFileInfo():
 
 
 class DataFileGoods():
-
     def __int__(self):
         self.goodsid = 0
         self.datanum = 0
@@ -357,7 +356,6 @@ class DataFileGoods():
 
 
 class DataFileHead():
-
     def __init__(self):
         self.info = DataFileInfo()
         self.goodslist = [DataFileGoods() for i in range(DF_MAX_GOODSUM)]
@@ -388,8 +386,12 @@ class DataFile():
         self.tmsreader = TMSReader(datacls)
         self._readhead()
 
-    def __def__(self):
-        self.f.close()
+    def __del__(self):
+        try:
+            self.f.close()
+        except Exception as e:
+            print(e)
+            exit(1)
 
     def _getraw(self, goodsid):
         index = self.goodsidx[goodsid]
@@ -397,7 +399,6 @@ class DataFile():
         blockid = self.head.goodslist[index].blockfirst
         readtime = (datanum - 1) // self.blockdatanum + 1
         data = b''
-        #with open(self.filename, mode='rb') as f:
         try:
             for i in range(readtime):
                 offset = blockid * DF_BLOCK_SIZE
