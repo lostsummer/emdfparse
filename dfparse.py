@@ -14,7 +14,7 @@ Arguments:
 Options:
   -h --help         show help
   -v --version      show version
-  -t <type>         specify the file type ( d| m| b )
+  -t <type>         specify the file type ( d| m| h| b ) d: Day, m: Minute, h: HisMin, b: Bargain
   -a                ouput all goods time data in file
   -l                list goods id in file
   -i <goodsid>      output the time data of specified good
