@@ -44,8 +44,17 @@ LEN_STOCKCOE = 24
 
 
 def xint32value(x):
+    """equal to call cpp class XInt32 method SetRawData() and GetValue()"""
     v = ctypes.c_uint32(x).value
-    return v % (2**29) * (16**(v >> 29))
+    # 低29位为基数
+    base = v & 0x1FFFFFFF
+    # 29位为基数符号位, 补码规则取其值
+    if base & 0x10000000:
+        base = ~base + 1
+        base &= 0x1FFFFFFF
+        base = -base
+    # 高三位为指数
+    return base * (16 ** (v >> 29))
 
 
 class DataBase(object):
