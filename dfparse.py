@@ -340,6 +340,7 @@ class DataFileInfo():
             self.goodsnum,
             self.reserved
         ) = struct.unpack('32s4I208s', data)
+        self.header = self.header.decode('ascii')
 
 
 class DataFileGoods():
@@ -389,9 +390,13 @@ class DataFile():
             print(e)
             exit(1)
         self.head = DataFileHead()
+        if self.head.info.header[:12] == DATAFILE2_HEADER:
+            self.blocksize = DF_BLOCK_SIZE
+        else:
+            self.blocksize = DF2_BLOCK_SIZE
         self.goodsidx = {}
         self.datasize = datacls.getsize()
-        self.blockdatanum = (DF_BLOCK_SIZE - 4) // self.datasize
+        self.blockdatanum = (self.blocksize - 4) // self.datasize
         self.tmsreader = TMSReader(datacls)
         self._readhead()
 
@@ -410,7 +415,7 @@ class DataFile():
         data = b''
         try:
             for i in range(readtime):
-                offset = blockid * DF_BLOCK_SIZE
+                offset = blockid * self.blocksize
                 if offset > self.length():
                     break
                 self.f.seek(offset, 0)
