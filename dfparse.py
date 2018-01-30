@@ -390,15 +390,15 @@ class DataFile():
             print(e)
             exit(1)
         self.head = DataFileHead()
-        if self.head.info.header[:12] == DATAFILE2_HEADER:
-            self.blocksize = DF_BLOCK_SIZE
-        else:
-            self.blocksize = DF2_BLOCK_SIZE
         self.goodsidx = {}
+        self._readhead()
+        if self.head.info.header[:12] == DATAFILE2_HEADER:
+            self.blocksize = DF2_BLOCK_SIZE
+        else:
+            self.blocksize = DF_BLOCK_SIZE
         self.datasize = datacls.getsize()
         self.blockdatanum = (self.blocksize - 4) // self.datasize
         self.tmsreader = TMSReader(datacls)
-        self._readhead()
 
     def __del__(self):
         try:
