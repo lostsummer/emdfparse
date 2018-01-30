@@ -11,6 +11,11 @@
 
 可作为一个包供其他python脚本使用，也可以作为一个打印数据到标准输出的命令行工具使用
 
+__注意__
+
+发现移动加强版MDS的Bargain数据已经使用DataFile2存储，而本程序只实现了DataFile，对所有类型文件类型按DataFile解析。
+所以对加强版MDS Bargain数据的解析是不正确的，这个问题暂时未修正。DataFile2相对DataFile增大了block尺寸，可自行尝试修改代码实现。
+
 ### 作为包
 
 参考min2redis.py使用DataFile类的方法
