@@ -51,22 +51,21 @@ if __name__ == '__main__':
     redisport = int(arguments["-p"]) if arguments["-p"] != None else 6379
     today = arguments["-d"]
     redisdb = arguments["-b"]
-    ntoday = int(today)
     nredisdb = 1 if (not redisdb) else int(redisdb)
 
 
     df = DataFile(datafile, Day)
-    if today :
+    if today:
+        todaynum = int(today)
         r = redis.Redis(host=redishost, port=redisport, db=nredisdb)
         p = r.pipeline(transaction=False)
-        for goodsid in df.goodsidx:
-            k = 'min1:{:0>7}'.format(goodsid)
-            ts = df.getgoodstms(goodsid)
-            for i in ts:
-                time = i.time + 200000000000
-                if ntoday == time // 10000:
-                    v = getjv(i)
-                    p.rpush(k, v)
+        for goodsid, timeseries in df.items():
+            key = 'min1:{:0>7}'.format(goodsid)
+            for i in timeseries:
+                datenum = (i.time + 200000000000) // 10000
+                if todaynum == datenum:
+                    value = getjv(i)
+                    p.rpush(key, value)
                     print("{}:{}".format(k, v))
 
             p.execute()
