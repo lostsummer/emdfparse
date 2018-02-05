@@ -20,7 +20,7 @@
 ```
 Usage:
   dfparse -h | --help | --version
-  dfparse -t <type> (-a| -l| -i <goodsid>) <filename>
+  dfparse -t <type> (-c| -a| -l| -i <goodsid>) <filename>
 
 Arguments:
   filename          name of data file
@@ -29,7 +29,8 @@ Options:
   -h --help         show help
   -v --version      show version
   -t <type>         specify the file type ( d| m| h| b ) d: Day, m: Minute, h: HisMin, b: Bargain
-  -a                ouput all goods time data in file
+  -c                output goods number
+  -a                output all goods time series data in file
   -l                list goods id in file
   -i <goodsid>      output the time data of specified good
 
@@ -37,7 +38,14 @@ Options:
 
 示例:
 
-#### 1. 列出Day.dat 中所有股票
+#### 1. 列出Day.dat 股票数量
+```
+python dfparse.py -t d -c Day.dat
+
+6718
+```
+
+#### 2. 列出Day.dat 中所有股票
 
 ```
 python dfparse.py -t d -l Day.dat
@@ -68,7 +76,7 @@ python dfparse.py -t d -l Day.dat
 ```
 
 
-#### 2. 列出HisMin.dat_1中goodsId为1的股票数据(最后先用1命令查看文件中是否有该goodsId, -i 指定文件中不存在的goodsId会抛KeyError异常)
+#### 3. 列出HisMin.dat_1中goodsId为1的股票数据(最后先用1命令查看文件中是否有该goodsId, -i 指定文件中不存在的goodsId会抛KeyError异常)
 
 ```
 python dfparse.py -t h -i 1 HisMin.dat_1|less
@@ -83,27 +91,40 @@ time:1711130937  price:3446067     ave :3437862     volume:1827598     zjjl:4878
 ...
 ```
 
-#### 3. 列出Bargain.dat_1中所有股票数据(数据较多)
+#### 4. 列出Bargain.dat_1中所有股票数据(数据较多)
 
 ```
 python dfparse.py -t b -a Bargain.dat_1
 
-id:1002161
-date:100548      time:14830       price:20940       volume:26253       tradenum:1           bs  :0
-date:100551      time:14830       price:223500      volume:26287       tradenum:255         bs  :0
-date:100554      time:14830       price:11100       volume:26301       tradenum:255         bs  :0
-date:100557      time:14830       price:8600        volume:26308       tradenum:255         bs  :0
-date:100600      time:14830       price:15800       volume:26324       tradenum:255         bs  :0
-date:100603      time:14830       price:14800       volume:26333       tradenum:255         bs  :0
+id:603101
+date:0           time:91500       price:16480       volume:500         tradenum:0           bs  :-1
+date:0           time:91503       price:16600       volume:500         tradenum:0           bs  :-1
+date:0           time:92006       price:16600       volume:800         tradenum:0           bs  :-1
+date:0           time:92051       price:16610       volume:800         tradenum:0           bs  :-1
+date:0           time:92248       price:16600       volume:1500        tradenum:0           bs  :-1
+date:0           time:92303       price:16600       volume:3100        tradenum:0           bs  :1
+date:0           time:92339       price:16600       volume:4100        tradenum:0           bs  :1
+date:0           time:92430       price:16600       volume:4600        tradenum:0           bs  :1
+date:0           time:92503       price:16600       volume:4600        tradenum:12          bs  :1
+date:0           time:93003       price:16500       volume:5400        tradenum:21          bs  :-1
+date:0           time:93006       price:16510       volume:200         tradenum:22          bs  :-1
+date:0           time:93024       price:16550       volume:11600       tradenum:23          bs  :1
 ...
 
-id:1002201
-date:101039      time:5730        price:6400        volume:5107        tradenum:1           bs  :0
-date:101042      time:5730        price:1700        volume:5110        tradenum:1           bs  :0
-date:101045      time:5720        price:35400       volume:5114        tradenum:255         bs  :0
-date:101048      time:5720        price:800         volume:5115        tradenum:255         bs  :0
-date:101051      time:5720        price:87600       volume:5144        tradenum:255         bs  :0
-date:101054      time:5720        price:7000        volume:5151        tradenum:255         bs  :0
+id:4310001
+date:20171017    time:91400       price:94270       volume:35          tradenum:71880       bs  :-1
+date:20171017    time:91500       price:94275       volume:20          tradenum:71897       bs  :1
+date:20171017    time:91501       price:94280       volume:44          tradenum:71907       bs  :1
+date:20171017    time:91501       price:94265       volume:15          tradenum:71916       bs  :-1
+date:20171017    time:91502       price:94270       volume:24          tradenum:71915       bs  :1
+date:20171017    time:91502       price:94265       volume:19          tradenum:71916       bs  :-1
+date:20171017    time:91503       price:94275       volume:25          tradenum:71922       bs  :1
+date:20171017    time:91503       price:94290       volume:28          tradenum:71938       bs  :1
+date:20171017    time:91504       price:94285       volume:12          tradenum:71940       bs  :1
+date:20171017    time:91504       price:94285       volume:4           tradenum:71938       bs  :1
+date:20171017    time:91505       price:94280       volume:3           tradenum:71938       bs  :1
+date:20171017    time:91505       price:94290       volume:15          tradenum:71938       bs  :1
+date:20171017    time:91506       price:94285       volume:6           tradenum:71942       bs  :-1
 ...
 ```
 
