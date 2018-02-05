@@ -6,7 +6,7 @@ dfparse
 
 Usage:
   dfparse -h | --help | --version
-  dfparse -t <type> (-a| -l| -i <goodsid>) <filename>
+  dfparse -t <type> (-c| -a| -l| -i <goodsid>) <filename>
 
 Arguments:
   filename          name of data file
@@ -15,6 +15,7 @@ Options:
   -h --help         show help
   -v --version      show version
   -t <type>         specify the file type ( d| m| h| b ) d: Day, m: Minute, h: HisMin, b: Bargain
+  -c                output goods nubmer
   -a                ouput all goods time data in file
   -l                list goods id in file
   -i <goodsid>      output the time data of specified good
@@ -27,7 +28,7 @@ import ctypes
 from docopt import docopt
 
 __author__ = "wangyx"
-__version__ = "0.7.5"
+__version__ = "0.8.2"
 
 DATAFILE_HEADER = "EM_DataFile"
 DATAFILE2_HEADER = "EM_DataFile2"
@@ -72,22 +73,13 @@ class DataBase(object):
         self.low = 0
         self.close = 0
 
-    def printbrief(self):
+    def __str__(self):
         fields = []
         od = vars(self)
         for i in self.brieflist:
             if i in od:
                 fields.append("{0:4}:{1:<12}".format(i, od[i]))
-        s = "".join(fields)
-        print(s)
-
-    def getbrief(self):
-        fields = {}
-        od = vars(self)
-        for i in self.brieflist:
-            if i in od:
-                fields[i] = od[i]
-        return fields
+        return "".join(fields)
 
 
 class Day(DataBase):
@@ -284,6 +276,7 @@ class Bargain(DataBase):
             self.tradenum,
             self.bs) = struct.unpack(self.fmt, data)
 
+
 class HisMin(DataBase):
     fmt = '=5I'
     brieflist = ['time', 'price', 'ave', 'volume', 'zjjl']
@@ -304,22 +297,32 @@ class HisMin(DataBase):
         self.volume = xint32value(self.volume)
         self.zjjl = xint32value(self.zjjl)
 
+
+class TimeSeries(list):
+    def __str__(self):
+        lines = []
+        for i in self:
+            lines.append(i.__str__())
+        return "\n".join(lines)
+
+
 class TMSReader():
     def __init__(self, datacls):
         self._datacls = datacls
 
     def read(self, data):
-        plist = []
+        tms = TimeSeries()
         length = len(data)
+        cls = self._datacls
         step = self._datacls.getsize()
         for i in range(length // step):
             start = i * step
             end = (i + 1) * step
             block = data[start:end]
-            point = self._datacls()
+            point = cls()
             point.read(block)
-            plist.append(point)
-        return plist
+            tms.append(point)
+        return tms
 
 
 class DataFileInfo():
@@ -384,6 +387,7 @@ class DataFileHead():
 class DataFile():
     def __init__(self, filename, datacls):
         self.filename = filename
+        self.filesize = os.path.getsize(self.filename)
         try:
             self.f = open(self.filename, 'rb')
         except Exception as e:
@@ -407,6 +411,17 @@ class DataFile():
             print(e)
             exit(1)
 
+    def __iter__(self):
+        self.goodsidxiter = iter(self.goodsidx)
+        return self
+
+    def __next__(self):
+        goodsid = self.goodsidxiter.__next__()
+        return goodsid
+
+    def items(self):
+        return ((i, self[i]) for i in self)
+
     def _getraw(self, goodsid):
         index = self.goodsidx[goodsid]
         datanum = self.head.goodslist[index].datanum
@@ -416,7 +431,7 @@ class DataFile():
         try:
             for i in range(readtime):
                 offset = blockid * self.blocksize
-                if offset > self.length():
+                if offset > self.filesize:
                     break
                 self.f.seek(offset, 0)
                 nextblockid, = struct.unpack('I', self.f.read(4))
@@ -437,10 +452,8 @@ class DataFile():
     def getgoodstms(self, goodsid):
         return self.tmsreader.read(self._getraw(goodsid))
 
-    def printgoodstms(self, goodsid):
-        ts = self.getgoodstms(goodsid)
-        for unit in ts:
-            unit.printbrief()
+    def __getitem__(self, i):
+        return self.getgoodstms(i)
 
     def _readhead(self):
         try:
@@ -454,17 +467,9 @@ class DataFile():
         for i in range(self.head.info.goodsnum):
             self.goodsidx[self.head.goodslist[i].goodsid] = i
 
-    def length(self):
-        return os.path.getsize(self.filename)
+    def __len__(self):
+        return self.head.info.goodsnum
 
-    def printgoodsids(self):
-        for i in self.goodsidx:
-            print(i)
-
-    def printallgoods(self):
-        for i in self.goodsidx:
-            print("id:{0}".format(i))
-            self.printgoodstms(i)
 
 
 if __name__ == '__main__':
@@ -473,6 +478,7 @@ if __name__ == '__main__':
     filename = arguments["<filename>"]
     filetype = arguments["-t"]
     goodsid = arguments["-i"]
+    outcount = arguments["-c"]
     listids = arguments["-l"]
     printallgoods = arguments["-a"]
 
@@ -486,12 +492,17 @@ if __name__ == '__main__':
     datacls = clstype[filetype]
     df = DataFile(filename, datacls)
 
-    if printallgoods:
-        df.printallgoods()
+    if outcount:
+        print(len(df))
+    elif printallgoods:
+        for i, tms in df.items():
+            print("id:{0}".format(i))
+            print(df[i])
         sys.exit()
-
-    if listids:
-        df.printgoodsids()
+    elif listids:
+        for i in df:
+            print(i)
         sys.exit()
-
-    df.printgoodstms(int(goodsid))
+    elif goodsid:
+        print(df[int(goodsid)])
+        sys.exit()

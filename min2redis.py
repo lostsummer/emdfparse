@@ -59,10 +59,9 @@ if __name__ == '__main__':
     if today :
         r = redis.Redis(host=redishost, port=redisport, db=nredisdb)
         p = r.pipeline(transaction=False)
-        for goodsid in df.goodsidx:
+        for goodsid, timeseries in df.items():
             k = 'min1:{:0>7}'.format(goodsid)
-            ts = df.getgoodstms(goodsid)
-            for i in ts:
+            for i in timeseries:
                 time = i.time + 200000000000
                 if ntoday == time // 10000:
                     v = getjv(i)
