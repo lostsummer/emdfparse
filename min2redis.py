@@ -46,7 +46,7 @@ def getjv(min):
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='min2redis {}'.format(__version__))
-    datafile = arguments["-f"]
+    filename = arguments["-f"]
     redishost = arguments["<host>"]
     redisport = int(arguments["-p"]) if arguments["-p"] != None else 6379
     today = arguments["-d"]
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     nredisdb = 1 if (not redisdb) else int(redisdb)
 
 
-    df = DataFile(datafile, Day)
+    df = DataFile(filename, Day)
     if today:
         todaynum = int(today)
         cli = redis.Redis(host=redishost, port=redisport, db=nredisdb)
