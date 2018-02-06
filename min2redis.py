@@ -57,17 +57,23 @@ if __name__ == '__main__':
     df = DataFile(datafile, Day)
     if today:
         todaynum = int(today)
-        r = redis.Redis(host=redishost, port=redisport, db=nredisdb)
-        p = r.pipeline(transaction=False)
+        cli = redis.Redis(host=redishost, port=redisport, db=nredisdb)
+        pl = cli.pipeline(transaction=False)
+        sumkeys = 0
         for goodsid, timeseries in df.items():
             key = 'min1:{:0>7}'.format(goodsid)
+            print("{}:".format(key))
+            havetoday = False
             for i in timeseries:
                 datenum = (i.time + 200000000000) // 10000
                 if todaynum == datenum:
                     value = getjv(i)
-                    p.rpush(key, value)
-                    print("{}:{}".format(k, v))
-
-            p.execute()
-            print('finish key: {}'.format(k))
+                    pl.rpush(key, value)
+                    print("{}:{}".format(key, value))
+                    havetoday = True
+            if havetoday:
+                pl.execute()
+                sumkeys += 1
+        print('complete to write {s} keys of {t}'\
+                .format(s=sumkeys, t=today))
 
