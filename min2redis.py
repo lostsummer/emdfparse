@@ -23,7 +23,6 @@ Options:
 import os
 import sys
 from docopt import docopt
-import configparser
 from dfparse import DataFile
 from dfparse import Day
 import redis

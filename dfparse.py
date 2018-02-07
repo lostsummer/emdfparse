@@ -337,20 +337,6 @@ class HisMin(DataBase):
         self.zjjl = xint32value(self.zjjl)
 
 
-class TimeSeries(list):
-    """数据单元的时间序列.
-    
-    基本列表之上添加了可打印方法__str__ .
-
-
-    """
-    def __str__(self):
-        lines = []
-        for i in self:
-            lines.append(i.__str__())
-        return "\n".join(lines)
-
-
 class TMSReader():
     """时序数据读取器.
     
@@ -368,10 +354,9 @@ class TMSReader():
         """
 
         :param data: 原始bin数据
-        :returns: 解析出的时序数据
+        :returns: 解析出的时序数据(生成器)
 
         """
-        tms = TimeSeries()
         length = len(data)
         cls = self._datacls
         step = self._datacls.getsize()
@@ -381,8 +366,7 @@ class TMSReader():
             block = data[start:end]
             point = cls()
             point.read(block)
-            tms.append(point)
-        return tms
+            yield point
 
 
 class DataFileInfo():
@@ -566,12 +550,18 @@ class DataFile():
             exit(1)
 
         self.head.read(data)
-        for i in range(self.head.info.goodsnum):
-            self.goodsidx[self.head.goodslist[i].goodsid] = i
+        for index in range(self.head.info.goodsnum):
+            """
+            goodsnum 有可能比实际股票数多, 
+            按此值会读到goodsid为0的, 需要排除
+            """
+            goodsid = self.head.goodslist[index].goodsid
+            if goodsid > 0:
+                self.goodsidx[goodsid] = index
 
     def __len__(self):
         """len函数可获取DataFile对象中股票数量"""
-        return self.head.info.goodsnum
+        return len(self.goodsidx)
 
 
 
@@ -603,7 +593,8 @@ if __name__ == '__main__':
     elif printallgoods:
         for i, tms in df.items():
             print("id:{0}".format(i))
-            print(tms)
+            for t in tms:
+                print(t)
         sys.exit()
     # 指定 -l
     elif listids:
@@ -612,5 +603,6 @@ if __name__ == '__main__':
         sys.exit()
     # 指定 -i <goodsid>
     elif goodsid:
-        print(df[int(goodsid)])
+        for t in df[int(goodsid)]:
+            print(t)
         sys.exit()
