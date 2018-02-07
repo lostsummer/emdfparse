@@ -503,6 +503,11 @@ class DataFile():
         goodsid = self.goodsidxiter.__next__()
         return goodsid
 
+    def next(self):
+        """兼容py2"""
+        goodsid = self.goodsidxiter.next()
+        return goodsid
+
     def items(self):
         """实现类似字典items列表方法, 生成器语法, key为goodsid, value为时序数据."""
         return ((i, self[i]) for i in self)
