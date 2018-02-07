@@ -45,7 +45,12 @@ LEN_STOCKCOE = 24
 
 
 def xint32value(x):
-    """相当于先后调用CPP代码中XInt32的SetRawData()和GetValue()方法"""
+    """相当于先后调用CPP代码中XInt32的SetRawData()和GetValue()方法
+
+    :param x: 未解析前32位数据
+    :returns: 解析出来的实际值
+
+    """
     v = ctypes.c_uint32(x).value
     # 低29位为基数
     base = v & 0x1FFFFFFF
@@ -60,16 +65,19 @@ def xint32value(x):
 
 class DataBase(object):
     """数据单元基类.
-
+    
     实现可打印方法__str__,
     打印brieflist中定义的摘要字段.
     类变量fmt, brieflist应被子类覆盖.
+
+
     """
     fmt = '5I'
     brieflist = ['time', 'open', 'high', 'low', 'close']
 
     @classmethod
     def getsize(cls):
+        """ """
         return struct.calcsize(cls.fmt)
 
     def __init__(self):
@@ -89,8 +97,7 @@ class DataBase(object):
 
 
 class Day(DataBase):
-    """对应CPP中结构CDay
-    """
+    """对应CPP中结构CDay"""
     fmt = '=23I2hi'
     brieflist = ['time', 'open', 'high', 'low', 'close', 'volume', 'amount']
 
@@ -115,6 +122,11 @@ class Day(DataBase):
         self.reserve = 0
 
     def read(self, data):
+        """
+
+        :param data: 原始bin数据
+
+        """
         (self.time,
             self.open,
             self.high,
@@ -151,8 +163,7 @@ class Day(DataBase):
 
 
 class OrderCounts():
-    """对应CPP中结构COrderCounts
-    """
+    """对应CPP中结构COrderCounts"""
     def __init__(self):
         self.numbuy = [0, 0, 0, 0]
         self.numsell = [0, 0, 0, 0]
@@ -163,8 +174,7 @@ class OrderCounts():
 
 
 class Minute(DataBase):
-    """对应CPP中结构CMinute
-    """
+    """对应CPP中结构CMinute"""
     fmt = '=66I2h3i'
     brieflist = ['time', 'close', 'ave', 'amount']
 
@@ -194,6 +204,11 @@ class Minute(DataBase):
         self.count = 0
 
     def read(self, data):
+        """
+
+        :param data: 原始bin数据
+
+        """
         (self.time,
             self.open,
             self.high,
@@ -269,8 +284,7 @@ class Minute(DataBase):
 
 
 class Bargain(DataBase):
-    """对应CPP中结构CBargain
-    """
+    """对应CPP中结构CBargain"""
     fmt = '=5Ib'
     brieflist = ['date', 'time', 'price', 'volume', 'tradenum', 'bs']
 
@@ -283,6 +297,11 @@ class Bargain(DataBase):
         self.bs = 0
 
     def read(self, data):
+        """
+
+        :param data: 原始bin数据
+
+        """
         (self.date,
             self.time,
             self.price,
@@ -292,8 +311,7 @@ class Bargain(DataBase):
 
 
 class HisMin(DataBase):
-    """对应CPP中结构CHisMin
-    """
+    """对应CPP中结构CHisMin"""
     fmt = '=5I'
     brieflist = ['time', 'price', 'ave', 'volume', 'zjjl']
 
@@ -305,6 +323,11 @@ class HisMin(DataBase):
         self.zjjl = 0
 
     def read(self, data):
+        """
+
+        :param data: 原始bin数据
+
+        """
         (self.time,
             self.price,
             self.ave,
@@ -316,8 +339,10 @@ class HisMin(DataBase):
 
 class TimeSeries(list):
     """数据单元的时间序列.
-
+    
     基本列表之上添加了可打印方法__str__ .
+
+
     """
     def __str__(self):
         lines = []
@@ -328,8 +353,10 @@ class TimeSeries(list):
 
 class TMSReader():
     """时序数据读取器.
-
+    
     用于从原始连续数据块中按指定数据单位类读取时序数据.
+
+
     """
     def __init__(self, datacls):
         self._datacls = datacls
@@ -338,6 +365,12 @@ class TMSReader():
     返回从原始数据中读取的时间序列.
     """
     def read(self, data):
+        """
+
+        :param data: 原始bin数据
+        :returns: 解析出的时序数据
+
+        """
         tms = TimeSeries()
         length = len(data)
         cls = self._datacls
@@ -353,9 +386,7 @@ class TMSReader():
 
 
 class DataFileInfo():
-    """
-    对应CPP中CDataFileInfo
-    """
+    """对应CPP中CDataFileInfo"""
     def __init__(self):
         self.header = ""
         self.version = 0
@@ -365,6 +396,11 @@ class DataFileInfo():
         self.reserved = ""
 
     def read(self, data):
+        """
+
+        :param data: 原始bin数据
+
+        """
         (
             self.header,
             self.version,
@@ -377,9 +413,7 @@ class DataFileInfo():
 
 
 class DataFileGoods():
-    """
-    对应CPP中CDataFileGoods
-    """
+    """对应CPP中CDataFileGoods"""
     def __int__(self):
         self.goodsid = 0
         self.datanum = 0
@@ -390,6 +424,11 @@ class DataFileGoods():
         self.code = ""
 
     def read(self, data):
+        """
+
+        :param data: 原始bin数据
+
+        """
         (
             self.goodsid,
             self.datanum,
@@ -402,14 +441,17 @@ class DataFileGoods():
 
 
 class DataFileHead():
-    """
-    对应CPP中CDataFileHead
-    """
+    """对应CPP中CDataFileHead"""
     def __init__(self):
         self.info = DataFileInfo()
         self.goodslist = [DataFileGoods() for i in range(DF_MAX_GOODSUM)]
 
     def read(self, data):
+        """
+
+        :param data: 原始bin数据
+
+        """
         self.info.read(data[0:SIZEOF_DATA_FILE_INFO])
 
         start = SIZEOF_DATA_FILE_INFO
@@ -421,10 +463,11 @@ class DataFileHead():
 
 
 class DataFile():
-    """
-    对应CPP中CDataFile
-
+    """对应CPP中CDataFile
+    
     self.goodsidx 对应CPP中m_aGoodsIndex, id => index 字典
+
+
     """
     def __init__(self, filename, datacls):
         self.filename = filename
@@ -461,14 +504,14 @@ class DataFile():
         return goodsid
 
     def items(self):
-        """
-        实现类似字典items列表方法, 生成器语法, key为goodsid, value为时序数据.
-        """
+        """实现类似字典items列表方法, 生成器语法, key为goodsid, value为时序数据."""
         return ((i, self[i]) for i in self)
 
     def _getraw(self, goodsid):
-        """
-        读取并连接一只股票的原始数据块.
+        """读取并连接一只股票的原始数据块.
+
+        :param goodsid: 股票id
+        :returns: 拼接好的连续原始数据
         """
         index = self.goodsidx[goodsid]
         datanum = self.head.goodslist[index].datanum
@@ -497,7 +540,11 @@ class DataFile():
         return data
 
     def getgoodstms(self, goodsid):
-        """返回指定goodsid的股票时序数据"""
+        """返回指定goodsid的股票时序数据
+
+        :param goodsid: 股票id
+        :returns: 指定股票的时序数据
+        """
         return self.tmsreader.read(self._getraw(goodsid))
 
     def __getitem__(self, i):
