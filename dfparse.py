@@ -349,23 +349,35 @@ class TMSReader():
     """
     返回从原始数据中读取的时间序列.
     """
-    def read(self, data):
+    def read(self, blocks):
         """
 
         :param data: 原始bin数据
         :returns: 解析出的时序数据(生成器)
 
         """
-        length = len(data)
+        #length = len(data)
         cls = self._datacls
         step = self._datacls.getsize()
-        for i in range(length // step):
-            start = i * step
-            end = (i + 1) * step
-            block = data[start:end]
-            point = cls()
-            point.read(block)
-            yield point
+        head = 0
+        buf = b''
+        for block in blocks:
+            blocklen = len(block)
+            buflen = len(buf)
+            if step > buflen > 0:
+                head = step - buflen
+                point = self._datacls()
+                point.read(buf + block[:head])
+                yield point
+            buf = b''
+            for start in range(head, blocklen, step):
+                end = start + step
+                if end <= blocklen:
+                    point = self._datacls()
+                    point.read(block[start:end])
+                    yield point
+                else:
+                    buf = block[start:]
 
 
 class DataFileInfo():
@@ -505,7 +517,6 @@ class DataFile():
         datanum = self.head.goodslist[index].datanum
         blockid = self.head.goodslist[index].blockfirst
         readtime = (datanum - 1) // self.blockdatanum + 1
-        blocklist = []
         try:
             for i in range(readtime):
                 offset = blockid * self.blocksize
@@ -520,12 +531,11 @@ class DataFile():
                               self.blockdatanum) * self.datasize
                 else:
                     length = self.blockdatanum * self.datasize
-                blocklist.append(self.f.read(length))
                 blockid = nextblockid
+                yield self.f.read(length)
         except Exception as e:
             print(e)
             exit(1)
-        return b''.join(blocklist)
 
     def getgoodstms(self, goodsid):
         """返回指定goodsid的股票时序数据
