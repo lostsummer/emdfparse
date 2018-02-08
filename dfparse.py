@@ -65,7 +65,7 @@ def xint32value(x):
 
 class DataBase(object):
     """数据单元基类.
-    
+
     实现可打印方法__str__,
     打印brieflist中定义的摘要字段.
     类变量fmt, brieflist应被子类覆盖.
@@ -339,9 +339,8 @@ class HisMin(DataBase):
 
 class TMSReader():
     """时序数据读取器.
-    
-    用于从原始连续数据块中按指定数据单位类读取时序数据.
 
+    用于从原始连续数据块中按指定数据单位类读取时序数据.
 
     """
     def __init__(self, datacls):
@@ -448,7 +447,7 @@ class DataFileHead():
 
 class DataFile():
     """对应CPP中CDataFile
-    
+
     self.goodsidx 对应CPP中m_aGoodsIndex, id => index 字典
 
 
@@ -506,7 +505,7 @@ class DataFile():
         datanum = self.head.goodslist[index].datanum
         blockid = self.head.goodslist[index].blockfirst
         readtime = (datanum - 1) // self.blockdatanum + 1
-        data = b''
+        blocklist = []
         try:
             for i in range(readtime):
                 offset = blockid * self.blocksize
@@ -521,12 +520,12 @@ class DataFile():
                               self.blockdatanum) * self.datasize
                 else:
                     length = self.blockdatanum * self.datasize
-                data += self.f.read(length)
+                blocklist.append(self.f.read(length))
                 blockid = nextblockid
         except Exception as e:
             print(e)
             exit(1)
-        return data
+        return b''.join(blocklist)
 
     def getgoodstms(self, goodsid):
         """返回指定goodsid的股票时序数据
@@ -552,7 +551,7 @@ class DataFile():
         self.head.read(data)
         for index in range(self.head.info.goodsnum):
             """
-            goodsnum 有可能比实际股票数多, 
+            goodsnum 有可能比实际股票数多,
             按此值会读到goodsid为0的, 需要排除
             """
             goodsid = self.head.goodslist[index].goodsid
