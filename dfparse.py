@@ -127,7 +127,8 @@ class Day(DataBase):
         :param data: 原始bin数据
 
         """
-        (self.time,
+        (
+            self.time,
             self.open,
             self.high,
             self.low,
@@ -152,7 +153,8 @@ class Day(DataBase):
             self.amtsell[2],
             self.rise,
             self.fall,
-            self.reserve) = struct.unpack(self.fmt, data)
+            self.reserve
+        ) = struct.unpack(self.fmt, data)
         self.volume = xint32value(self.volume)
         self.amount = xint32value(self.amount)
         self.neipan = xint32value(self.neipan)
@@ -209,7 +211,8 @@ class Minute(DataBase):
         :param data: 原始bin数据
 
         """
-        (self.time,
+        (
+            self.time,
             self.open,
             self.high,
             self.low,
@@ -279,7 +282,8 @@ class Minute(DataBase):
             self.fall,
             self.volsell5,
             self.volbuy5,
-            self.count) = struct.unpack(self.fmt, data)
+            self.count
+        ) = struct.unpack(self.fmt, data)
         self.amount = xint32value(self.amount)
 
 
@@ -302,12 +306,14 @@ class Bargain(DataBase):
         :param data: 原始bin数据
 
         """
-        (self.date,
+        (
+            self.date,
             self.time,
             self.price,
             self.volume,
             self.tradenum,
-            self.bs) = struct.unpack(self.fmt, data)
+            self.bs
+        ) = struct.unpack(self.fmt, data)
 
 
 class HisMin(DataBase):
@@ -328,56 +334,15 @@ class HisMin(DataBase):
         :param data: 原始bin数据
 
         """
-        (self.time,
+        (
+            self.time,
             self.price,
             self.ave,
             self.volume,
-            self.zjjl) = struct.unpack(self.fmt, data)
+            self.zjjl
+        ) = struct.unpack(self.fmt, data)
         self.volume = xint32value(self.volume)
         self.zjjl = xint32value(self.zjjl)
-
-
-class TMSReader():
-    """时序数据读取器.
-
-    用于从原始连续数据块中按指定数据单位类读取时序数据.
-
-    """
-    def __init__(self, datacls):
-        self._datacls = datacls
-
-    """
-    返回从原始数据中读取的时间序列.
-    """
-    def read(self, blocks):
-        """
-
-        :param data: 原始bin数据
-        :returns: 解析出的时序数据(生成器)
-
-        """
-        #length = len(data)
-        cls = self._datacls
-        step = self._datacls.getsize()
-        head = 0
-        buf = b''
-        for block in blocks:
-            blocklen = len(block)
-            buflen = len(buf)
-            if step > buflen > 0:
-                head = step - buflen
-                point = self._datacls()
-                point.read(buf + block[:head])
-                yield point
-            buf = b''
-            for start in range(head, blocklen, step):
-                end = start + step
-                if end <= blocklen:
-                    point = self._datacls()
-                    point.read(block[start:end])
-                    yield point
-                else:
-                    buf = block[start:]
 
 
 class DataFileInfo():
@@ -439,7 +404,7 @@ class DataFileHead():
     """对应CPP中CDataFileHead"""
     def __init__(self):
         self.info = DataFileInfo()
-        self.goodslist = [DataFileGoods() for i in range(DF_MAX_GOODSUM)]
+        self.dfgs = [DataFileGoods() for i in range(DF_MAX_GOODSUM)]
 
     def read(self, data):
         """
@@ -448,13 +413,13 @@ class DataFileHead():
 
         """
         self.info.read(data[0:SIZEOF_DATA_FILE_INFO])
-
         start = SIZEOF_DATA_FILE_INFO
-        end = start + SIZEOF_DATA_FILE_GOODS
-        for goods in self.goodslist:
-            goods.read(data[start:end])
+        step = SIZEOF_DATA_FILE_GOODS
+        end = start + step
+        for g in self.dfgs:
+            g.read(data[start:end])
             start = end
-            end += SIZEOF_DATA_FILE_GOODS
+            end += step
 
 
 class DataFile():
@@ -467,11 +432,13 @@ class DataFile():
     def __init__(self, filename, datacls):
         self.filename = filename
         self.filesize = os.path.getsize(self.filename)
+        self.datacls = datacls
         try:
-            self.f = open(self.filename, 'rb')
+            #self._f = open(self.filename, 'rb')
+            self._f = os.open(self.filename, os.O_RDONLY)
         except Exception as e:
             print(e)
-            exit(1)
+            sys.exit(1)
         self.head = DataFileHead()
         self.goodsidx = {}
         self._readhead()
@@ -481,14 +448,12 @@ class DataFile():
             self.blocksize = DF_BLOCK_SIZE
         self.datasize = datacls.getsize()
         self.blockdatanum = (self.blocksize - 4) // self.datasize
-        self.tmsreader = TMSReader(datacls)
 
     def __del__(self):
         try:
-            self.f.close()
+            os.close(self._f)
         except Exception as e:
             print(e)
-            exit(1)
 
     def __iter__(self):
         self.goodsidxiter = iter(self.goodsidx)
@@ -507,24 +472,24 @@ class DataFile():
         """实现类似字典items列表方法, 生成器语法, key为goodsid, value为时序数据."""
         return ((i, self[i]) for i in self)
 
-    def _getraw(self, goodsid):
+    def _getgoodsraw(self, goodsid):
         """读取并连接一只股票的原始数据块.
 
         :param goodsid: 股票id
         :returns: 拼接好的连续原始数据
         """
         index = self.goodsidx[goodsid]
-        datanum = self.head.goodslist[index].datanum
-        blockid = self.head.goodslist[index].blockfirst
+        datanum = self.head.dfgs[index].datanum
+        blockid = self.head.dfgs[index].blockfirst
         readtime = (datanum - 1) // self.blockdatanum + 1
         try:
             for i in range(readtime):
                 offset = blockid * self.blocksize
                 if offset > self.filesize:
                     break
-                self.f.seek(offset, 0)
-                nextblockid, = struct.unpack('I', self.f.read(4))
-                if nextblockid > self.head.goodslist[index].blocklast:
+                #self._f.seek(offset, 0)
+                nextblockid, = struct.unpack('I', os.pread(self._f, 4, offset))
+                if nextblockid > self.head.dfgs[index].blocklast:
                     break
                 if i == readtime - 1:
                     length = (datanum %
@@ -532,10 +497,11 @@ class DataFile():
                 else:
                     length = self.blockdatanum * self.datasize
                 blockid = nextblockid
-                yield self.f.read(length)
+                block = os.pread(self._f, length, 4+offset)
+                yield block
         except Exception as e:
             print(e)
-            exit(1)
+            sys.exit(1)
 
     def getgoodstms(self, goodsid):
         """返回指定goodsid的股票时序数据
@@ -543,7 +509,28 @@ class DataFile():
         :param goodsid: 股票id
         :returns: 指定股票的时序数据
         """
-        return self.tmsreader.read(self._getraw(goodsid))
+        blocks = self._getgoodsraw(goodsid)
+        cls = self.datacls
+        step = self.datasize
+        head = 0
+        buf = b''
+        for block in blocks:
+            blocklen = len(block)
+            buflen = len(buf)
+            if step > buflen > 0:
+                head = step - buflen
+                point = self._datacls()
+                point.read(buf + block[:head])
+                yield point
+            buf = b''
+            for start in range(head, blocklen, step):
+                end = start + step
+                if end <= blocklen:
+                    point = cls()
+                    point.read(block[start:end])
+                    yield point
+                else:
+                    buf = block[start:]
 
     def __getitem__(self, i):
         """重载下标运算符[]"""
@@ -552,11 +539,12 @@ class DataFile():
     def _readhead(self):
         """读文件头部, 并生成一个 goodsid => index 字典 goodsidx"""
         try:
-            self.f.seek(0)
-            data = self.f.read(SIZEOF_DATA_FILE_HEAD)
+            #self._f.seek(0)
+            #data = self._f.read(SIZEOF_DATA_FILE_HEAD)
+            data = os.pread(self._f, SIZEOF_DATA_FILE_HEAD, 0)
         except Exception as e:
             print(e)
-            exit(1)
+            sys.exit(1)
 
         self.head.read(data)
         for index in range(self.head.info.goodsnum):
@@ -564,7 +552,7 @@ class DataFile():
             goodsnum 有可能比实际股票数多,
             按此值会读到goodsid为0的, 需要排除
             """
-            goodsid = self.head.goodslist[index].goodsid
+            goodsid = self.head.dfgs[index].goodsid
             if goodsid > 0:
                 self.goodsidx[goodsid] = index
 
@@ -583,7 +571,6 @@ if __name__ == '__main__':
     outcount = arguments["-c"]
     listids = arguments["-l"]
     printallgoods = arguments["-a"]
-
     # 命令行数据类型标识 => 数据类
     clstype = {
         "d": Day,
@@ -591,10 +578,8 @@ if __name__ == '__main__':
         "h": HisMin,
         "b": Bargain,
     }
-
     datacls = clstype[filetype]
     df = DataFile(filename, datacls)
-
     # 指定 -c
     if outcount:
         print(len(df))
@@ -604,14 +589,11 @@ if __name__ == '__main__':
             print("id:{0}".format(i))
             for t in tms:
                 print(t)
-        sys.exit()
     # 指定 -l
     elif listids:
         for i in df:
             print(i)
-        sys.exit()
     # 指定 -i <goodsid>
     elif goodsid:
         for t in df[int(goodsid)]:
             print(t)
-        sys.exit()
