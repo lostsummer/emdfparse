@@ -434,7 +434,6 @@ class DataFile():
         self.filesize = os.path.getsize(self.filename)
         self.datacls = datacls
         try:
-            #self._f = open(self.filename, 'rb')
             self._f = os.open(self.filename, os.O_RDONLY)
         except Exception as e:
             print(e)
@@ -487,7 +486,6 @@ class DataFile():
                 offset = blockid * self.blocksize
                 if offset > self.filesize:
                     break
-                #self._f.seek(offset, 0)
                 nextblockid, = struct.unpack('I', os.pread(self._f, 4, offset))
                 if nextblockid > self.head.dfgs[index].blocklast:
                     break
@@ -539,8 +537,6 @@ class DataFile():
     def _readhead(self):
         """读文件头部, 并生成一个 goodsid => index 字典 goodsidx"""
         try:
-            #self._f.seek(0)
-            #data = self._f.read(SIZEOF_DATA_FILE_HEAD)
             data = os.pread(self._f, SIZEOF_DATA_FILE_HEAD, 0)
         except Exception as e:
             print(e)
