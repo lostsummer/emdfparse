@@ -7,7 +7,7 @@ dfparse tool
 dfparse is a moudle for parse DS data file day.dat, min1.dat, minute.dat, and so on.
 usage:
 
-    >>> from dfparse import DataFile, Day
+    >>> from emdfparse import DataFile, Day
     >>> df = DataFile('/usr/local/EMoney/Data/Day.dat', Day)
     >>> for id, tms in df.items():
             print('id: {}'.format(id))
@@ -19,5 +19,5 @@ usage:
     ...
 """
 
-
+from emdfparse.emdatafile import *
 

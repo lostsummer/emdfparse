@@ -1,31 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-dfparse
-
-Usage:
-  dfparse -h | --help | --version
-  dfparse -t <type> (-c| -a| -l| -i <goodsid>) <filename>
-
-Arguments:
-  filename          name of data file
-
-Options:
-  -h --help         show help
-  -v --version      show version
-  -t <type>         specify the file type ( d| m| h| b ) d: Day, m: Minute, h: HisMin, b: Bargain
-  -c                output goods nubmer
-  -a                ouput all goods time data in file
-  -l                list goods id in file
-  -i <goodsid>      output the time data of specified good
-"""
 
 import os
 import sys
 import struct
 import ctypes
-from docopt import docopt
 
 __author__ = "wangyx"
 __version__ = "0.8.2"
@@ -413,6 +393,7 @@ class DataFileHead():
 
         """
         self.info.read(data[0:SIZEOF_DATA_FILE_INFO])
+
         start = SIZEOF_DATA_FILE_INFO
         step = SIZEOF_DATA_FILE_GOODS
         end = start + step
@@ -551,40 +532,3 @@ class DataFile():
         """len函数可获取DataFile对象中股票数量"""
         return len(self.goodsidx)
 
-
-
-if __name__ == '__main__':
-    arguments = docopt(__doc__, version="dfparse {0}".format(__version__))
-    # 取得各个命令行参数及选项值
-    filename = arguments["<filename>"]
-    filetype = arguments["-t"]
-    goodsid = arguments["-i"]
-    outcount = arguments["-c"]
-    listids = arguments["-l"]
-    printallgoods = arguments["-a"]
-    # 命令行数据类型标识 => 数据类
-    clstype = {
-        "d": Day,
-        "m": Minute,
-        "h": HisMin,
-        "b": Bargain,
-    }
-    datacls = clstype[filetype]
-    df = DataFile(filename, datacls)
-    # 指定 -c
-    if outcount:
-        print(len(df))
-    # 指定 -a
-    elif printallgoods:
-        for i, tms in df.items():
-            print("id:{0}".format(i))
-            for t in tms:
-                print(t)
-    # 指定 -l
-    elif listids:
-        for i in df:
-            print(i)
-    # 指定 -i <goodsid>
-    elif goodsid:
-        for t in df[int(goodsid)]:
-            print(t)
