@@ -70,7 +70,7 @@ class DataFileInfo():
         self.blockstotal = 0
         self.blocksuse = 0
         self.goodsnum = 0
-        self.reserved = ""
+        self.reserved = b'\x00' * 8 
 
     def read(self, data):
         """
@@ -110,7 +110,7 @@ class DataFileGoods():
         self.blockdata = 0
         self.blocklast = 0
         self.datalastidx = 0
-        self.code = ""
+        self.code = b'\x00' * LEN_STOCKCOE
 
     def read(self, data):
         """
@@ -175,7 +175,7 @@ class DataFile():
 
 
     """
-    def __init__(self, filename, datacls):
+    def __init__(self, filename, datacls, mode='r'):
         self.filename = filename
         self.datacls = datacls
         self.thlk = threading.RLock()
@@ -185,10 +185,13 @@ class DataFile():
             if os.path.exists(self.filename):
                 self._f = os.open(self.filename, os.O_RDWR)
                 self._readhead()
-            else:
+            elif mode == 'w':
                 self._f = os.open(self.filename, os.O_CREAT|os.O_RDWR)
                 self._writehead()
-            self.filesize = os.path.getsize(self.filename)
+            else:
+                print('{f} is not exist!'.format(f=filename))
+                sys.exit(1)
+            self._filesize = os.path.getsize(self.filename)
         except Exception as e:
             traceback.print_exc()
             sys.exit(1)
@@ -203,7 +206,8 @@ class DataFile():
 
     def __del__(self):
         try:
-            os.close(self._f)
+            if hasattr(self, '_f'):
+                os.close(self._f)
         except Exception as e:
             traceback.print_exc()
 
@@ -242,7 +246,7 @@ class DataFile():
         try:
             for i in range(readtime):
                 offset = blockid * self.blocksize
-                if offset > self.filesize:
+                if offset > self._filesize:
                     break
                 nextblockid, = struct.unpack('I', self.readat(4, offset))
                 if nextblockid > self.head.dfgs[index].blocklast:

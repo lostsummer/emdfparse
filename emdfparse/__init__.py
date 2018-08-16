@@ -24,4 +24,4 @@ from emdfparse.datafile import *
 from emdfparse.datatype import *
 
 __author__ = "wangyx"
-__version__ = "1.0.0"
+__version__ = "1.0.2"
