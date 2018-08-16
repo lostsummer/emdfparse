@@ -1,4 +1,10 @@
-# dfparse
+# emdfparse
+
+## 安装
+
+```
+python3 setup.py install   # 需要安装setuptools, 如果系统中有pip, 说明setuptools已经有了
+```
 
 ## 用途
 
@@ -13,14 +19,28 @@
 
 ### 作为包
 
-参考min2redis.py使用DataFile类的方法
+```
+usage:
+
+    >>> from emdfparse import DataFile, Day
+    >>> df = DataFile('/usr/local/EMoney/Data/Day.dat', Day)
+    >>> for id, tms in df.items():
+            print('id: {}'.format(id))
+            print(tms)
+
+    id: 1
+    time:20171009    open:3403245     high:3410170     low :3366965     close:3374378     volume:191736057   amount:227440594944
+    time:20171016    open:3393205     high:3400511     low :3374768     close:3378470     volume:174330620   amount:221650690048
+    ...
+```
+
 
 ### 作为命令行工具
 
 ```
 Usage:
-  dfparse -h | --help | --version
-  dfparse -t <type> (-c| -a| -l| -i <goodsid>) <filename>
+  emdfparse -h | --help | --version
+  emdfparse -t <type> (-c| -a| -l| -i <goodsid>) <filename>
 
 Arguments:
   filename          name of data file
@@ -40,7 +60,7 @@ Options:
 
 #### 1. 列出Day.dat 股票数量
 ```
-python dfparse.py -t d -c Day.dat
+python emdfparse.py -t d -c Day.dat
 
 6718
 ```
@@ -48,7 +68,7 @@ python dfparse.py -t d -c Day.dat
 #### 2. 列出Day.dat 中所有股票
 
 ```
-python dfparse.py -t d -l Day.dat
+python emdfparse.py -t d -l Day.dat
 
 1835474
 136611
@@ -79,7 +99,7 @@ python dfparse.py -t d -l Day.dat
 #### 3. 列出HisMin.dat_1中goodsId为1的股票数据(最后先用1命令查看文件中是否有该goodsId, -i 指定文件中不存在的goodsId会抛KeyError异常)
 
 ```
-python dfparse.py -t h -i 1 HisMin.dat_1|less
+emdfparse -t h -i 1 HisMin.dat_1|less
 
 time:1711130931  price:3439398     ave :3438242     volume:4194014     zjjl:105805922
 time:1711130932  price:3439423     ave :3437565     volume:1872804     zjjl:366456452
@@ -94,7 +114,7 @@ time:1711130937  price:3446067     ave :3437862     volume:1827598     zjjl:4878
 #### 4. 列出Bargain.dat_1中所有股票数据(数据较多)
 
 ```
-python dfparse.py -t b -a Bargain.dat_1
+emdfparse -t b -a Bargain.dat_1
 
 id:603101
 date:0           time:91500       price:16480       volume:500         tradenum:0           bs  :-1
@@ -130,8 +150,4 @@ date:20171017    time:91506       price:94285       volume:6           tradenum:
 
 __注__: 2, 3 命名打印的可能并不是指定数据类型的所有字段, 可以根据需要修改Day, Minute等数据子类的brieflist, 或重写覆盖基类printbrief方法
 
-
-# min2redis.py
-
-使用dfparse解析Min1.dat数据文件并写入redis的一个示例小程序, 写入redis的数据格式参见 [K Line](http://git.emoney.cn/EMStockData/DataImporter/wikis/k-line)
 

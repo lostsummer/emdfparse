@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 """
-emdfviewer
+emdfparse
 
 Usage:
-  emdfviewer -h | --help | --version
-  emdfviewer -t <type> (-c| -a| -l| -i <goodsid>) <filename>
+  emdfparse -h | --help | --version
+  emdfparse -t <type> (-c| -a| -l| -i <goodsid>) <filename>
 
 Arguments:
   filename          name of data file
@@ -22,13 +22,15 @@ Options:
 """
 
 import sys
-import emdatafile as emdf
+import emdfparse
+from emdfparse.datafile import DataFile
+from emdfparse.datatype import *
 from docopt import docopt
 
 
 class DfInfo(object):
     def __init__(self, filename, datacls):
-        self.df = emdf.DataFile(filename, datacls)
+        self.df = DataFile(filename, datacls)
 
     def printgoodscount(self):
         print(len(self.df))
@@ -47,8 +49,9 @@ class DfInfo(object):
             for d in tms:
                 print(d)
 
-if __name__ == '__main__':
-    arguments = docopt(__doc__, version="emdfviewer {0}".format(emdf.__version__))
+
+def main():
+    arguments = docopt(__doc__, version="emdfparse {0}".format(emdfparse.__version__))
     # 取得各个命令行参数及选项值
     filename = arguments["<filename>"]
     filetype = arguments["-t"]
@@ -58,10 +61,10 @@ if __name__ == '__main__':
     goodsid = arguments["-i"]
     # 命令行数据类型标识 => 数据类
     clstype = {
-        "d": emdf.Day,
-        "m": emdf.Minute,
-        "h": emdf.HisMin,
-        "b": emdf.Bargain,
+        "d": Day,
+        "m": Minute,
+        "h": HisMin,
+        "b": Bargain,
     }
     datacls = clstype[filetype]
     dfinfo = DfInfo(filename, datacls)
@@ -82,3 +85,6 @@ if __name__ == '__main__':
     elif goodsid:
         gid = int(goodsid)
         dfinfo.printgoodsbyid(gid)
+
+if __name__ == '__main__':
+    main()

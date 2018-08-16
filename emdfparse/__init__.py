@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 """
-dfparse tool
+emdfparse tool
 ~~~~~~~~~~~~
 
-dfparse is a moudle for parse DS data file day.dat, min1.dat, minute.dat, and so on.
+emdfparse is a moudle for parse DS data file day.dat, min1.dat, minute.dat, and so on.
 usage:
 
     >>> from emdfparse import DataFile, Day
@@ -19,5 +19,9 @@ usage:
     ...
 """
 
-from emdfparse.emdatafile import *
 
+from emdfparse.datafile import *
+from emdfparse.datatype import *
+
+__author__ = "wangyx"
+__version__ = "1.0.0"
