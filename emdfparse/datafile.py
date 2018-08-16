@@ -66,11 +66,12 @@ class DataFileInfo():
     def __init__(self, version=1):
         self.header = DATAFILE_HEADER if version == 1 else DATAFILE2_HEADER
         self._header = self.header.encode('ascii')
+        self._header += b'\x00' * len(self._header)
         self.version = 0
         self.blockstotal = 0
         self.blocksuse = 0
         self.goodsnum = 0
-        self.reserved = b'\x00' * 8 
+        self.reserved = b'\x00' * 208
 
     def read(self, data):
         """
@@ -181,12 +182,15 @@ class DataFile():
         self.thlk = threading.RLock()
         self.head = DataFileHead()
         self.goodsidx = {}
+        flag = os.O_RDWR
+        if _IS_WINDOWS:
+            flag |= os.O_BINARY
         try:
             if os.path.exists(self.filename):
-                self._f = os.open(self.filename, os.O_RDWR)
+                self._f = os.open(self.filename, flag)
                 self._readhead()
             elif mode == 'w':
-                self._f = os.open(self.filename, os.O_CREAT|os.O_RDWR)
+                self._f = os.open(self.filename, flag|os.O_CREAT)
                 self._writehead()
             else:
                 print('{f} is not exist!'.format(f=filename))
