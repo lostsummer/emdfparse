@@ -3,7 +3,7 @@
 ## 安装
 
 ```
-python3 setup.py install   # 需要安装setuptools, 如果系统中有pip, 说明setuptools已经有了
+python3 setup.py install   # 需要安装python3, setuptools, 如果系统中有pip3, 说明setuptools已经有了
 ```
 
 ## 用途
@@ -60,7 +60,7 @@ Options:
 
 #### 1. 列出Day.dat 股票数量
 ```
-python emdfparse.py -t d -c Day.dat
+emdfparse -t d -c Day.dat
 
 6718
 ```
@@ -68,7 +68,7 @@ python emdfparse.py -t d -c Day.dat
 #### 2. 列出Day.dat 中所有股票
 
 ```
-python emdfparse.py -t d -l Day.dat
+emdfparse -t d -l Day.dat
 
 1835474
 136611
