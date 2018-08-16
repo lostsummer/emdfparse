@@ -18,7 +18,7 @@ with open("requirements.txt") as f:
 readme = "README.md"
 if os.path.exists("README.rst"):
     readme = "README.rst"
-with open(readme) as f:
+with open(readme, encoding='utf-8') as f:
     long_description = f.read()
 
 
