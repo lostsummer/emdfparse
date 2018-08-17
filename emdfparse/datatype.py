@@ -28,40 +28,32 @@ def xint32value(x):
     return base * (16 ** (v >> 29))
 
 
-class DataBase(object):
-    """数据单元基类.
-
-    实现可打印方法__str__,
-    打印brieflist中定义的摘要字段.
-    类变量fmt, brieflist应被子类覆盖.
-
+def dataclasscommon(cls):
+    """数据类通用方法装饰器
 
     """
-    fmt = '5I'
-    brieflist = ['time', 'open', 'high', 'low', 'close']
-
     @classmethod
-    def getsize(cls):
-        """ """
-        return struct.calcsize(cls.fmt)
+    def _getsize(kls):
+        return struct.calcsize(kls.fmt)
 
-    def __init__(self):
-        self.time = 0
-        self.open = 0
-        self.high = 0
-        self.low = 0
-        self.close = 0
+    cls.getsize = _getsize
 
-    def __str__(self):
+    def _str(obj):
         fields = []
-        od = vars(self)
-        for i in self.brieflist:
+        od = vars(obj)
+        for i in obj.brieflist:
             if i in od:
                 fields.append("{0:4}:{1:<12}".format(i, od[i]))
         return "".join(fields)
 
+    cls.__str__ =  _str
+    cls.__repr__ = _str
 
-class Day(DataBase):
+    return cls
+
+
+@dataclasscommon
+class Day:
     """对应CPP中结构CDay"""
     fmt = '=23I2hi'
     brieflist = ['time', 'open', 'high', 'low', 'close', 'volume', 'amount']
@@ -163,7 +155,7 @@ class Day(DataBase):
         )
 
 
-class OrderCounts():
+class OrderCounts:
     """对应CPP中结构COrderCounts"""
     def __init__(self):
         self.numbuy = [0, 0, 0, 0]
@@ -174,7 +166,8 @@ class OrderCounts():
         self.amtsell = [0, 0, 0, 0]
 
 
-class Minute(DataBase):
+@dataclasscommon
+class Minute:
     """对应CPP中结构CMinute"""
     fmt = '=66I2h3i'
     brieflist = ['time', 'close', 'ave', 'amount']
@@ -362,8 +355,8 @@ class Minute(DataBase):
         )
 
 
-
-class Bargain(DataBase):
+@dataclasscommon
+class Bargain:
     """对应CPP中结构CBargain"""
     fmt = '=5Ib'
     brieflist = ['date', 'time', 'price', 'volume', 'tradenum', 'bs']
@@ -403,7 +396,9 @@ class Bargain(DataBase):
             self.bs
         )
 
-class HisMin(DataBase):
+
+@dataclasscommon
+class HisMin:
     """对应CPP中结构CHisMin"""
     fmt = '=5I'
     brieflist = ['time', 'price', 'ave', 'volume', 'zjjl']
