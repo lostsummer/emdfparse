@@ -60,7 +60,7 @@ def safewrite(lock, fd, data, offset):
         return  os.pwrite(fd, data, offset)
 
 
-class DataFileInfo():
+class DataFileInfo:
     """对应CPP中CDataFileInfo"""
     fmt = '32s4I208s'
     def __init__(self, version=1):
@@ -100,7 +100,7 @@ class DataFileInfo():
         )
 
 
-class DataFileGoods():
+class DataFileGoods:
     """对应CPP中CDataFileGoods"""
     fmt = '6I{0}s'.format(LEN_STOCKCOE)
 
@@ -141,7 +141,7 @@ class DataFileGoods():
         )
 
 
-class DataFileHead():
+class DataFileHead:
     """对应CPP中CDataFileHead"""
     def __init__(self, version=1):
         self.info = DataFileInfo(version)
@@ -169,7 +169,7 @@ class DataFileHead():
         return infodata + dfgsdata
 
 
-class DataFile():
+class DataFile:
     """对应CPP中CDataFile
 
     self.goodsidx 对应CPP中m_aGoodsIndex, id => index 字典
@@ -243,11 +243,11 @@ class DataFile():
         :param goodsid: 股票id
         :returns: 拼接好的连续原始数据
         """
-        index = self.goodsidx[goodsid]
-        datanum = self.head.dfgs[index].datanum
-        blockid = self.head.dfgs[index].blockfirst
-        readtime = (datanum - 1) // self.blockdatanum + 1
         try:
+            index = self.goodsidx[goodsid]
+            datanum = self.head.dfgs[index].datanum
+            blockid = self.head.dfgs[index].blockfirst
+            readtime = (datanum - 1) // self.blockdatanum + 1
             for i in range(readtime):
                 offset = blockid * self.blocksize
                 if offset > self._filesize:

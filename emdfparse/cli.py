@@ -28,7 +28,7 @@ from emdfparse.datatype import *
 from docopt import docopt
 
 
-class DfInfo(object):
+class DfInfo:
     def __init__(self, filename, datacls):
         self.df = DataFile(filename, datacls)
 
