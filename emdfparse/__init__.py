@@ -23,5 +23,5 @@ usage:
 from emdfparse.datafile import *
 from emdfparse.datatype import *
 
-__author__ = "wangyx"
-__version__ = "1.0.2"
+__author__ = "yushin"
+__version__ = "1.0.3"

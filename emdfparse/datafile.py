@@ -301,6 +301,15 @@ class DataFile:
         """重载下标运算符[], 返回一个指定股票的所有数据的list而不是生成器"""
         return [t for t in self.getgoodstms(gid)]
 
+    def addblock(self):
+        if self.head.info.blocksuse >= self.head.info.blockstotal:
+            n = self.head.info.blockstotal + DF_BLOCK_GROWBY
+            offset = n * DF2_BLOCK_SIZE
+            os.ftruncate(self._f, offset)
+            os.head.info.blockstotal = n
+        os.head.info.blocksuse += 1
+        return os.head.info.blocksuse
+
     def setgoodstms(gid, tms):
         pass
 
