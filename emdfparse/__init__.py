@@ -20,8 +20,8 @@ usage:
 """
 
 
-from emdfparse.datafile import *
-from emdfparse.datatype import *
+from .datafile import *
+from .datatype import *
 
 __author__ = "yushin"
-__version__ = "1.0.3"
+__version__ = "1.0.4"

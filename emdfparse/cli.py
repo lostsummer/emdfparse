@@ -23,8 +23,8 @@ Options:
 
 import sys
 import emdfparse
-from emdfparse.datafile import DataFile
-from emdfparse.datatype import *
+from .datafile import DataFile
+from .datatype import *
 from docopt import docopt
 
 
