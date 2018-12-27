@@ -3,12 +3,12 @@
 ## 安装
 
 ```
-python3 setup.py install   # 需要安装python3, setuptools, 如果系统中有pip3, 说明setuptools已经有了
+pip install emdfparse
 ```
 
 ## 用途
 
-解析DS几种落地文件(基于移动加强版Linux MDS, 猜测和金融平台使用的文件格式相同)
+解析金融平台几种数据文件
 
 - K线类型: Day.dat, Day_\*.dat, Min1.dat, Min1_\*.dat, Min5.dat, Min5_\*.dat, Min30.dat, Min30_\*.dat 等
 - 分时数据: Minute.dat_n 等
