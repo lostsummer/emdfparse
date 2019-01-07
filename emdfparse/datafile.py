@@ -328,10 +328,10 @@ class DataFile:
             sys.exit(1)
 
         self.head.read(data)
-        for index in range(self.head.info.goodsnum):
+        for index in range(min(self.head.info.goodsnum, DF_MAX_GOODSUM)):
             """
             goodsnum 有可能比实际股票数多,
-            按此值会读到goodsid为0的, 需要排除
+            但实际不会超出DF_MAX_GOODSUM, 这是DS Day.dat 已经显现的一个bug
             """
             goodsid = self.head.dfgs[index].goodsid
             if goodsid > 0:

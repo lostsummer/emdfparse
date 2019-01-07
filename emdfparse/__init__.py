@@ -24,4 +24,4 @@ from .datafile import *
 from .datatype import *
 
 __author__ = "yushin"
-__version__ = "1.0.5"
+__version__ = "1.0.6"
